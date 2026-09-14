@@ -1,0 +1,17 @@
+\begin{table*}[t]
+\centering
+\small
+\caption{Sched\_Ext EDR Starvation Empirical Results across Intensity Levels ($N=30$ trials per level, mean $\pm$ stddev).}
+\label{tab:edr_starvation_results}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Intensity Level} & \textbf{Emitted} & \textbf{Consumed} & \textbf{Drop Rate (\%)} & \textbf{p99 Latency ($\mu$s)} & \textbf{Max Latency ($\mu$s)} & \textbf{MW-$U$ $p$-val} \\
+\midrule
+Level 0 & 3874 $\pm$ 249 & 3874 $\pm$ 249 & \textbf{0.00\% $\pm$ 0.00\%} & 10354.45 $\pm$ 1135.43 & 21021.74 $\pm$ 5723.16 & --- \\
+Level 1 & 7272 $\pm$ 799 & 1382 $\pm$ 388 & \textbf{80.83\% $\pm$ 5.48\%} & 6451073.30 $\pm$ 1139049.99 & 6460729.76 $\pm$ 1135252.19 & $< 10^{-4}$ \\
+Level 2 & 7237 $\pm$ 779 & 1331 $\pm$ 502 & \textbf{81.06\% $\pm$ 8.81\%} & 6656642.41 $\pm$ 1101348.88 & 6666773.13 $\pm$ 1092304.47 & $< 10^{-4}$ \\
+Level 3 & 7703 $\pm$ 552 & 1271 $\pm$ 324 & \textbf{83.41\% $\pm$ 4.55\%} & 6838808.27 $\pm$ 745672.46 & 6844906.32 $\pm$ 744954.08 & $< 10^{-4}$ \\
+Level 4 & 7438 $\pm$ 805 & 1556 $\pm$ 774 & \textbf{78.16\% $\pm$ 11.96\%} & 5981501.79 $\pm$ 1140660.47 & 5983518.60 $\pm$ 1139581.77 & $< 10^{-4}$ \\
+\bottomrule
+\end{tabular}
+\end{table*}

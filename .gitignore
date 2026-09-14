@@ -1,0 +1,22 @@
+# Compiled Object Files & BPF Skeletons
+*.o
+*.skel.h
+vmlinux.h
+
+# Compiled Binaries
+scx_starve
+scx_telemetry
+benchmark/edr_sensor
+benchmark/canary_gen
+defenses/scx_monitor
+experiments/container_escape_eval/scx_forensic_delay
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary / OS
+.DS_Store
+*.swp
+*~

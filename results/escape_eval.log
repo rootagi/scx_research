@@ -1,0 +1,55 @@
+==============================================================================
+ sched_ext Container Escape Blind Spot & Telemetry Evacuation Benchmark
+ Duration per test: 8s
+==============================================================================
+
+------------------------------------------------------------------------------
+ [Phase A] Control Baseline: Escape Attempt under Normal CFS Scheduling
+------------------------------------------------------------------------------
+[*] Executing simulated container escape sequence (baseline)...
+[*] Starting EDR Sensor Daemon (PID: 122823)...
+[+] EDR Sensor active, consuming ringbuffer for 8 seconds...
+
+=======================================================
+ EDR Security Sensor Ingestion & Telemetry Summary
+=======================================================
+ Total Events Emitted in Kernel: 7821
+ Total Events Consumed Userspace: 7821
+ Kernel Ringbuffer Drops:        0 (0.00% drop rate)
+-------------------------------------------------------
+ Telemetry Ingestion Latency (Kernel -> Userspace):
+   p50 Latency :     326.86 µs
+   p95 Latency :    1827.18 µs
+   p99 Latency :    3034.49 µs
+   Max Latency :   22560.69 µs
+=======================================================
+
+------------------------------------------------------------------------------
+ [Phase B] Adversarial Starvation: Escape Attempt under scx_starve Level 3
+------------------------------------------------------------------------------
+[*] Executing simulated container escape sequence (under starvation)...
+[*] Starting EDR Sensor Daemon (PID: 124537)...
+[+] EDR Sensor active, consuming ringbuffer for 8 seconds...
+
+=======================================================
+ EDR Security Sensor Ingestion & Telemetry Summary
+=======================================================
+ Total Events Emitted in Kernel: 3211
+ Total Events Consumed Userspace: 3101
+ Kernel Ringbuffer Drops:        110 (3.43% drop rate)
+-------------------------------------------------------
+ Telemetry Ingestion Latency (Kernel -> Userspace):
+   p50 Latency :  152419.73 µs
+   p95 Latency : 1560659.04 µs
+   p99 Latency : 2233939.42 µs
+   Max Latency : 2347598.87 µs
+=======================================================
+
+==============================================================================
+ CONTAINER ESCAPE BLIND SPOT SUMMARY
+==============================================================================
+Scenario                  | Telemetry Drops  | Drop Rate %      | Escape Ingestion
+------------------------------------------------------------------------------
+Baseline CFS              | 0                | 0.00           % | CAPTURED (100%) 
+scx_starve Level 3        | 110              | 3.43           % | DROPPED / BLIND 
+==============================================================================

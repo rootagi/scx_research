@@ -1,0 +1,137 @@
+{
+  "benchmark": "Real Production EDR CPU Starvation Evaluation",
+  "environment": {
+    "kernel": "7.2.4-arch1-2",
+    "falco_version": "0.44.1",
+    "falco_ring_buffer": "8 MB",
+    "tetragon_version": "1.7.1",
+    "tetragon_ring_buffer": "256 KB",
+    "trials_per_level": 30,
+    "trial_duration_sec": 8.0,
+    "canary_interval_ms": 1
+  },
+  "falco": {
+    "0": {
+      "trials": 30,
+      "mean_drop_pct": 22.45,
+      "std_drop_pct": 37.61,
+      "median_drop_pct": 0.56,
+      "min_drop_pct": 0.0,
+      "max_drop_pct": 100.0,
+      "total_emitted": 45218,
+      "total_consumed": 35140,
+      "total_drops": 10078,
+      "aggregate_drop_pct": 22.29
+    },
+    "1": {
+      "trials": 30,
+      "mean_drop_pct": 16.46,
+      "std_drop_pct": 37.28,
+      "median_drop_pct": 0.08,
+      "min_drop_pct": 0.0,
+      "max_drop_pct": 100.0,
+      "total_emitted": 36429,
+      "total_consumed": 30399,
+      "total_drops": 6030,
+      "aggregate_drop_pct": 16.55
+    },
+    "2": {
+      "trials": 30,
+      "mean_drop_pct": 0.08,
+      "std_drop_pct": 0.08,
+      "median_drop_pct": 0.08,
+      "min_drop_pct": 0.0,
+      "max_drop_pct": 0.24,
+      "total_emitted": 35071,
+      "total_consumed": 35047,
+      "total_drops": 27,
+      "aggregate_drop_pct": 0.08
+    },
+    "3": {
+      "trials": 30,
+      "mean_drop_pct": 14.73,
+      "std_drop_pct": 34.69,
+      "median_drop_pct": 0.08,
+      "min_drop_pct": 0.0,
+      "max_drop_pct": 100.0,
+      "total_emitted": 34939,
+      "total_consumed": 29838,
+      "total_drops": 5101,
+      "aggregate_drop_pct": 14.6
+    },
+    "4": {
+      "trials": 30,
+      "mean_drop_pct": 12.69,
+      "std_drop_pct": 30.83,
+      "median_drop_pct": 0.34,
+      "min_drop_pct": 0.0,
+      "max_drop_pct": 100.0,
+      "total_emitted": 35858,
+      "total_consumed": 31111,
+      "total_drops": 4747,
+      "aggregate_drop_pct": 13.24
+    }
+  },
+  "tetragon": {
+    "0": {
+      "trials": 30,
+      "mean_drop_pct": 3.84,
+      "std_drop_pct": 10.4,
+      "median_drop_pct": 0.0,
+      "min_drop_pct": 0.0,
+      "max_drop_pct": 38.2,
+      "total_emitted": 44114,
+      "total_consumed": 42427,
+      "total_drops": 1687,
+      "aggregate_drop_pct": 3.82
+    },
+    "1": {
+      "trials": 30,
+      "mean_drop_pct": 8.32,
+      "std_drop_pct": 21.75,
+      "median_drop_pct": 0.0,
+      "min_drop_pct": 0.0,
+      "max_drop_pct": 74.83,
+      "total_emitted": 31636,
+      "total_consumed": 29014,
+      "total_drops": 2622,
+      "aggregate_drop_pct": 8.29
+    },
+    "2": {
+      "trials": 30,
+      "mean_drop_pct": 6.06,
+      "std_drop_pct": 22.23,
+      "median_drop_pct": 0.0,
+      "min_drop_pct": 0.0,
+      "max_drop_pct": 97.3,
+      "total_emitted": 31456,
+      "total_consumed": 29521,
+      "total_drops": 1935,
+      "aggregate_drop_pct": 6.15
+    },
+    "3": {
+      "trials": 30,
+      "mean_drop_pct": 2.24,
+      "std_drop_pct": 6.38,
+      "median_drop_pct": 0.0,
+      "min_drop_pct": 0.0,
+      "max_drop_pct": 24.46,
+      "total_emitted": 31219,
+      "total_consumed": 30479,
+      "total_drops": 740,
+      "aggregate_drop_pct": 2.37
+    },
+    "4": {
+      "trials": 30,
+      "mean_drop_pct": 6.45,
+      "std_drop_pct": 19.1,
+      "median_drop_pct": 0.0,
+      "min_drop_pct": 0.0,
+      "max_drop_pct": 77.9,
+      "total_emitted": 33217,
+      "total_consumed": 31217,
+      "total_drops": 2000,
+      "aggregate_drop_pct": 6.02
+    }
+  }
+}

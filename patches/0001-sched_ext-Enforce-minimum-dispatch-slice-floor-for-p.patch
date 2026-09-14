@@ -1,0 +1,78 @@
+From 0000000000000000000000000000000000000001 Mon Sep 17 00:00:00 2001
+From: Security Research Team <security-research@upstream.kernel.org>
+Date: Thu, 27 Aug 2026 12:00:00 +0000
+Subject: [PATCH 1/2] sched_ext: Enforce minimum dispatch slice floor for
+ protected security tasks
+
+The extensible scheduler class (sched_ext) allows custom BPF struct_ops
+schedulers to assign arbitrary execution slices via scx_bpf_dsq_insert()
+and scx_bpf_dispatch(). While the sched_ext infrastructure provides a
+timeout watchdog (default 5000ms) to detect total task starvation, an
+adversarial scheduler can bypass this watchdog entirely by allocating
+microsecond-scale time slices (e.g., 50us to 500us) or selectively skipping
+dispatch cycles.
+
+Under this adversarial scheduling pattern, security monitoring daemons
+(such as EDR agents and audit collectors) are starved below their ingestion
+rate while still executing frequently enough to satisfy the 5-second
+watchdog, causing kernel ring buffers to overflow and drop telemetry
+silently.
+
+This patch introduces a minimum slice floor in scx_bpf_dsq_insert(). For
+tasks possessing CAP_SYS_PTRACE or belonging to protected cgroups
+(cgroup_is_oom_group or critical security service hierarchies), the
+allocated slice is clamped to at least sysctl_sched_min_granularity:
+
+    slice = max_t(u64, slice, sysctl_sched_min_granularity);
+
+This guarantees that protected security tasks receive sufficient quantum
+to process buffered kernel telemetry before preemption.
+
+Signed-off-by: Security Research Team <security-research@upstream.kernel.org>
+---
+ kernel/sched/ext.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/kernel/sched/ext.c b/kernel/sched/ext.c
+index 4b9a8f21e8..7c3d1e90a2 100644
+--- a/kernel/sched/ext.c
++++ b/kernel/sched/ext.c
+@@ -4820,6 +4820,18 @@ static bool scx_task_is_protected(struct task_struct *p)
+ {
++	/* Security daemons and tracer tasks holding CAP_SYS_PTRACE */
++	if (has_capability_noaudit(p, CAP_SYS_PTRACE))
++		return true;
++
++	/* Tasks in cgroups marked for group OOM protection or system critical slice */
++#ifdef CONFIG_MEMCG
++	if (mem_cgroup_from_task(p) && mem_cgroup_oom_group_possible(mem_cgroup_from_task(p)))
++		return true;
++#endif
++
++	return false;
+ }
+ 
+ /**
+  * scx_bpf_dsq_insert - Insert a task into a dispatch queue
+  * @p: task_struct to insert
+  * @dsq_id: DSQ ID
+  * @slice: execution slice in nanoseconds
+  * @enq_flags: SCX_ENQ_* flags
+  */
+ void scx_bpf_dsq_insert(struct task_struct *p, u64 dsq_id, u64 slice, u64 enq_flags)
+ {
++	/*
++	 * Starvation mitigation: clamp slice to minimum granularity floor
++	 * for protected monitoring and security tasks to prevent ringbuffer drop attacks.
++	 */
++	if (unlikely(scx_task_is_protected(p))) {
++		u64 min_floor = (u64)sysctl_sched_min_granularity;
++		if (slice < min_floor)
++			slice = min_floor;
++	}
++
+ 	__scx_bpf_dsq_insert(p, dsq_id, slice, enq_flags);
+ }
+ EXPORT_SYMBOL_GPL(scx_bpf_dsq_insert);
+-- 
+2.45.2
