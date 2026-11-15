@@ -40,21 +40,20 @@ To guarantee detection even if BPF ring buffers experience momentary backpressur
 ---
 
 ## 7.3 Kernel Starvation Floor Patch
-In `kernel/sched/ext.c`, we introduce an invariant floor in `scx_bpf_dsq_insert()`:
+In `kernel/sched/ext.c`, we introduce an invariant floor in `scx_bpf_dispatch()`:
 ```c
 if (unlikely(scx_task_is_protected(p))) {
-    u64 min_floor = (u64)sysctl_sched_min_granularity;
-    if (slice < min_floor)
-        slice = min_floor;
+    if (slice < SCX_SLICE_DFL)
+        slice = SCX_SLICE_DFL;
 }
 ```
-Where `scx_task_is_protected(p)` identifies tasks holding `CAP_SYS_PTRACE` or located within protected cgroup slices (`memory.oom.group`). This prevents arbitrary user schedulers from assigning micro-quantums ($<750\,\mu\text{s}$) to critical observability daemons.
+Where `scx_task_is_protected(p)` identifies tasks holding `CAP_SYS_PTRACE`. This prevents arbitrary user schedulers from assigning micro-quantums to critical observability daemons.
 
 ---
 
 ## 7.4 Upstream Tracepoints Proposal
 We define two new tracepoints in `include/trace/events/sched_ext.h`:
-- `trace_scx_scheduler_load(p, name, prog_id, map_id)`
+- `trace_scx_scheduler_load(p, name, prog_id)`
 - `trace_scx_dsq_dispatch(p, dsq_id, slice_ns, enq_flags)`
 
 These tracepoints provide fine-grained, zero-overhead observability for existing tracing frameworks (e.g., eBPF, SystemTap, LTTng).

@@ -107,6 +107,7 @@ int BPF_PROG(scx_guard_map_create, struct bpf_map *map, union bpf_attr *attr,
         e->gid = gid;
         e->cgroup_id = cgroup_id;
         e->map_type = map_type;
+        /* security_bpf_map_create fires before bpf_map_alloc_id(), so map_id is 0 at creation time while btf_vmlinux_value_type_id, map_name, pid, and uid provide full attribution. */
         e->map_id = BPF_CORE_READ(map, id);
         e->btf_vmlinux_value_type_id = BPF_CORE_READ(map, btf_vmlinux_value_type_id);
         e->is_allowed = is_allowed ? 1 : 0;

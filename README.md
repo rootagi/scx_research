@@ -2,7 +2,8 @@
 
 [![Kernel](https://img.shields.io/badge/Linux_Kernel-≥6.12-blue.svg)](https://kernel.org)
 [![eBPF](https://img.shields.io/badge/eBPF-struct__ops-orange.svg)](https://ebpf.io)
-[![License](https://img.shields.io/badge/License-GPL_v2-green.svg)](LICENSE)
+[![License: Code](https://img.shields.io/badge/Code-GPL--2.0--only%20%7C%20BSD--2--Clause-blue.svg)](LICENSE)
+[![License: Paper & Data](https://img.shields.io/badge/Paper%20%26%20Data-CC--BY--4.0-lightgrey.svg)](LICENSE)
 
 An empirical offensive security evaluation of the Linux extensible scheduler (`sched_ext`). This research investigates micro-quantum CPU scheduling primitives that selectively starve endpoint security daemons (EDRs), suppress kernel telemetry ring buffers, enable covert timing channels, and blind production detection agents (Falco, Tetragon) without triggering kernel watchdogs.
 
@@ -22,7 +23,7 @@ An empirical offensive security evaluation of the Linux extensible scheduler (`s
 
 3. **Defenses & Mitigations**:
    - **`scx_monitor`**: Real-time eBPF LSM hook monitoring `bpf_map_create` to intercept and block unauthorized `struct_ops` registrations.
-   - **Kernel Patch (`patches/`)**: Enforces minimum dispatch quantum floors in `scx_bpf_dsq_insert` to prevent complete starvation of protected tasks.
+   - **Kernel Patch (`patches/`)**: Enforces minimum dispatch quantum floors in `scx_bpf_dispatch` to prevent complete starvation of protected tasks.
 
 ---
 
@@ -94,3 +95,13 @@ python3 benchmark/run_real_edr_bench.py --tool tetragon --trials 30 --duration 8
 ```
 
 For complete instructions, see [EVALUATION.md](EVALUATION.md) and [CLAIMS.md](CLAIMS.md).
+
+---
+
+## Licensing
+
+This research repository is distributed under a dual-licensing structure (Option A):
+- **Code Components** (eBPF programs, userspace tools, benchmark harnesses, scripts, and build system): Dual-licensed under either **GPL-2.0-only** OR **BSD-2-Clause** (`SPDX-License-Identifier: GPL-2.0-only OR BSD-2-Clause`). Kernel patches (`patches/`) conform to the upstream Linux kernel license (**GPL-2.0-only**).
+- **Academic Paper, Documentation, & Datasets** (`paper/`, `results/`, `*.md`): Licensed under Creative Commons Attribution 4.0 International (**CC-BY-4.0**).
+
+See the [LICENSE](LICENSE) file for the full text of all applicable licenses.

@@ -13,6 +13,7 @@ LDFLAGS := -lbpf -lelf -lz -lpthread
 
 all: scx_telemetry scx_starve \
      benchmark/edr_sensor benchmark/scx_forensic_delay benchmark/latency_probe.bpf.o \
+     benchmark/canary_gen \
      defenses/scx_monitor \
      experiments/covert_channel/scx_covert_tx experiments/covert_channel/scx_covert_rx
 
@@ -81,6 +82,10 @@ benchmark/latency_probe.bpf.o: benchmark/latency_probe.bpf.c vmlinux.h
 	$(CLANG) $(BPF_CFLAGS) -c $< -o $@
 	$(LLVM_STRIP) -g $@
 
+benchmark/canary_gen: benchmark/canary_gen.c
+	@echo "===> [canary_gen] Compiling canary generator"
+	$(CC) $(CFLAGS) $< -o $@
+
 # ==== Defensive Engineering: BPF LSM & Monitor Daemon ====
 defenses/scx_guard_lsm.bpf.o: defenses/scx_guard_lsm.bpf.c defenses/scx_guard_lsm.h vmlinux.h
 	@echo "===> [lsm_guard] Compiling LSM BPF object"
@@ -147,6 +152,7 @@ clean:
 	rm -f benchmark/edr_sensor.bpf.o benchmark/edr_sensor.skel.h benchmark/edr_sensor
 	rm -f benchmark/scx_forensic_delay.bpf.o benchmark/scx_forensic_delay.skel.h benchmark/scx_forensic_delay
 	rm -f benchmark/latency_probe.bpf.o
+	rm -f benchmark/canary_gen
 	rm -f defenses/scx_guard_lsm.bpf.o defenses/scx_guard_lsm.skel.h defenses/scx_monitor
 	rm -f experiments/covert_channel/scx_covert_tx experiments/covert_channel/scx_covert_rx
-	rm -rf results/ /tmp/edr_out_*.log /tmp/starve_*.log /tmp/escape_*.log
+	rm -rf /tmp/edr_out_*.log /tmp/starve_*.log /tmp/escape_*.log /tmp/scx_canary

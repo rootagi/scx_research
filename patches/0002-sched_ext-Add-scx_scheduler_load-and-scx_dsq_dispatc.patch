@@ -1,6 +1,6 @@
-From 0000000000000000000000000000000000000002 Mon Sep 17 00:00:00 2001
+From fed0cb3b1a5660db97936d2f004b6ce5207d4a7b Mon Sep 17 00:00:00 2001
 From: Security Research Team <security-research@upstream.kernel.org>
-Date: Thu, 27 Aug 2026 12:30:00 +0000
+Date: Sun, 15 Nov 2026 16:57:30 +0530
 Subject: [PATCH 2/2] sched_ext: Add scx_scheduler_load and scx_dsq_dispatch
  tracepoints
 
@@ -10,23 +10,22 @@ sched_ext schedulers.
 
 This patch defines and exposes two new tracepoints in include/trace/events/sched_ext.h:
 
-1. `sched_ext:scx_scheduler_load`
-   Fires synchronously when a `struct sched_ext_ops` scheduler is linked
+1. sched_ext:scx_scheduler_load
+   Fires synchronously when a struct sched_ext_ops scheduler is linked
    into the kernel.
    Exposes:
-     - `pid`: PID of the registering task
-     - `uid`: UID of the caller
-     - `name`: String name of the scheduler ops (.name)
-     - `prog_id`: BPF program ID implementing ops
-     - `map_id`: BPF struct_ops map ID
+     - pid: PID of the registering task
+     - uid: UID of the caller
+     - name: String name of the scheduler ops (.name)
+     - prog_id: BPF program ID implementing ops
 
-2. `sched_ext:scx_dsq_dispatch`
+2. sched_ext:scx_dsq_dispatch
    Fires on each dispatch decision made by the BPF scheduler.
    Exposes:
-     - `pid`: Task PID being dispatched
-     - `dsq_id`: Target Dispatch Queue ID (DSQ)
-     - `slice_ns`: Allocated slice duration in nanoseconds
-     - `enq_flags`: SCX_ENQ_* scheduling flags
+     - pid: Task PID being dispatched
+     - dsq_id: Target Dispatch Queue ID (DSQ)
+     - slice_ns: Allocated slice duration in nanoseconds
+     - enq_flags: SCX_ENQ_* scheduling flags
 
 These tracepoints enable existing kernel auditing subsystems and eBPF
 probes to detect adversarial starvation patterns (e.g. repetitive
@@ -35,47 +34,37 @@ the fast path when inactive.
 
 Signed-off-by: Security Research Team <security-research@upstream.kernel.org>
 ---
- include/trace/events/sched_ext.h | 62 ++++++++++++++++++++++++++++++++++++++++
- kernel/sched/ext.c               |  8 ++++++
- 2 files changed, 70 insertions(+)
- create mode 100644 include/trace/events/sched_ext.h
+ include/trace/events/sched_ext.h | 40 ++++++++++++++++++++++++++++++++
+ kernel/sched/ext.c               |  6 +++++
+ 2 files changed, 46 insertions(+)
 
 diff --git a/include/trace/events/sched_ext.h b/include/trace/events/sched_ext.h
-new file mode 100644
-index 0000000000..f92a10b4de
---- /dev/null
+index fe19da7..6b575ff 100644
+--- a/include/trace/events/sched_ext.h
 +++ b/include/trace/events/sched_ext.h
-@@ -0,0 +1,62 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM sched_ext
-+
-+#if !defined(_TRACE_SCHED_EXT_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_SCHED_EXT_H
-+
-+#include <linux/tracepoint.h>
-+#include <linux/sched/ext.h>
+@@ -26,6 +26,46 @@ TRACE_EVENT(sched_ext_dump,
+ 	)
+ );
+ 
 +
 +TRACE_EVENT(scx_scheduler_load,
-+	TP_PROTO(struct task_struct *p, const char *name, u32 prog_id, u32 map_id),
-+	TP_ARGS(p, name, prog_id, map_id),
++	TP_PROTO(struct task_struct *p, const char *name, u32 prog_id),
++	TP_ARGS(p, name, prog_id),
 +	TP_STRUCT__entry(
 +		__field(pid_t, pid)
 +		__field(uid_t, uid)
 +		__string(name, name)
 +		__field(u32, prog_id)
-+		__field(u32, map_id)
 +	),
 +	TP_fast_assign(
 +		__entry->pid = task_pid_nr(p);
 +		__entry->uid = from_kuid_munged(current_user_ns(), task_uid(p));
-+		__assign_str(name, name);
++		__assign_str(name);
 +		__entry->prog_id = prog_id;
-+		__entry->map_id = map_id;
 +	),
-+	TP_printk("pid=%d uid=%d name=%s prog_id=%u map_id=%u",
++	TP_printk("pid=%d uid=%d name=%s prog_id=%u",
 +		  __entry->pid, __entry->uid, __get_str(name),
-+		  __entry->prog_id, __entry->map_id)
++		  __entry->prog_id)
 +);
 +
 +TRACE_EVENT(scx_dsq_dispatch,
@@ -97,31 +86,40 @@ index 0000000000..f92a10b4de
 +		  __entry->pid, __entry->dsq_id, __entry->slice_ns, __entry->enq_flags)
 +);
 +
-+#endif /* _TRACE_SCHED_EXT_H */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
+ #endif /* _TRACE_SCHED_EXT_H */
+ 
+ /* This part must be outside protection */
 diff --git a/kernel/sched/ext.c b/kernel/sched/ext.c
-index 7c3d1e90a2..9a8f21e84b 100644
+index b138657..b47f608 100644
 --- a/kernel/sched/ext.c
 +++ b/kernel/sched/ext.c
-@@ -14,6 +14,9 @@
- #include <linux/sched/ext.h>
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/sched_ext.h>
-+
- static int scx_ops_enable(struct sched_ext_ops *ops, struct bpf_link *link)
- {
- 	...
-+	trace_scx_scheduler_load(current, ops->name, link->prog->aux->id, ops->map_id);
- 	return 0;
- }
+@@ -5264,6 +5264,8 @@ static int scx_ops_enable(struct sched_ext_ops *ops, struct bpf_link *link)
  
- void __scx_bpf_dsq_insert(struct task_struct *p, u64 dsq_id, u64 slice, u64 enq_flags)
- {
- 	...
+ 	atomic_long_inc(&scx_enable_seq);
+ 
++	trace_scx_scheduler_load(current, scx_ops.name, link->prog->aux->id);
++
+ 	return 0;
+ 
+ err_del:
+@@ -6050,6 +6052,8 @@ __bpf_kfunc void scx_bpf_dispatch(struct task_struct *p, u64 dsq_id, u64 slice,
+ 			slice = SCX_SLICE_DFL;
+ 	}
+ 
 +	trace_scx_dsq_dispatch(p, dsq_id, slice, enq_flags);
- 	return;
- }
++
+ 	if (slice)
+ 		p->scx.slice = slice;
+ 	else
+@@ -6090,6 +6094,8 @@ __bpf_kfunc void scx_bpf_dispatch_vtime(struct task_struct *p, u64 dsq_id,
+ 			slice = SCX_SLICE_DFL;
+ 	}
+ 
++	trace_scx_dsq_dispatch(p, dsq_id, slice, enq_flags);
++
+ 	if (slice)
+ 		p->scx.slice = slice;
+ 	else
 -- 
-2.45.2
+2.53.0
+

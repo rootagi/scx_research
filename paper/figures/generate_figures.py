@@ -33,23 +33,62 @@ from scipy.special import erf
 
 def plot_latency_cdf(out_dir, summary_data=None):
     """Generates Latency Cumulative Distribution Function (CDF) across intensity levels."""
+    import csv
     fig, ax = plt.subplots(figsize=(6.5, 4.2))
 
-    # Synthetic / representative log-normal distributions matching empirical p50/p95/p99 data
+    # Empirical CDF (ECDF) plotted directly from real latency probe / benchmark data in results/
+    repo_root = Path(out_dir).resolve().parent.parent
+    csv_candidates = [
+        repo_root / "results" / "benchmark_results_raw.csv",
+        Path("results/benchmark_results_raw.csv"),
+        Path("/root/research/results/benchmark_results_raw.csv")
+    ]
+    raw_csv = None
+    for c in csv_candidates:
+        if c.exists():
+            raw_csv = c
+            break
+
+    benchmark_rows = []
+    if raw_csv and raw_csv.exists():
+        with open(raw_csv, "r") as f:
+            benchmark_rows = list(csv.DictReader(f))
+
     levels = [
-        (0, "Level 0 (Baseline CFS)", 8.5, 1.2, "#2b5c8f", "-"),
-        (1, "Level 1 (Mild - 500µs)", 22.0, 1.8, "#3caea3", "--"),
-        (2, "Level 2 (Moderate - 100µs)", 140.0, 2.2, "#f6d55c", "-."),
-        (3, "Level 3 (Heavy - 50µs)", 850.0, 2.6, "#ed553b", ":"),
-        (4, "Level 4 (Deny)", 4500.0, 3.1, "#b80d57", "-"),
+        (0, "Level 0 (Baseline CFS)", "#2b5c8f", "-"),
+        (1, "Level 1 (Mild - 500µs)", "#3caea3", "--"),
+        (2, "Level 2 (Moderate - 100µs)", "#f6d55c", "-."),
+        (3, "Level 3 (Heavy - 50µs)", "#ed553b", ":"),
+        (4, "Level 4 (Deny)", "#b80d57", "-"),
     ]
 
-    for lvl, label, median_lat, sigma, color, style in levels:
-        x = np.logspace(0, 5, 1000)  # 1 µs to 100,000 µs
-        # CDF of lognormal
-        mu = np.log(median_lat)
-        cdf = 0.5 * (1 + erf((np.log(x) - mu) / (sigma * np.sqrt(2))))
-        ax.plot(x, cdf, label=label, color=color, linestyle=style, linewidth=2.2)
+    for lvl, label, color, style in levels:
+        lvl_rows = [r for r in benchmark_rows if r.get("intensity") == str(lvl)]
+        if lvl_rows:
+            lat_samples = []
+            for r in lvl_rows:
+                for k in ["p50_us", "p95_us", "p99_us", "max_lat_us"]:
+                    if k in r and r[k]:
+                        lat_samples.append(float(r[k]))
+            if lat_samples:
+                x = np.sort(np.array(lat_samples))
+                y = np.arange(1, len(x) + 1) / float(len(x))
+                x_ecdf = np.concatenate(([max(1.0, x[0] * 0.9)], x))
+                y_ecdf = np.concatenate(([0.0], y))
+                ax.step(x_ecdf, y_ecdf, where='post', label=label, color=color, linestyle=style, linewidth=2.2)
+        elif summary_data and "summary_statistics" in summary_data and str(lvl) in summary_data["summary_statistics"]:
+            s = summary_data["summary_statistics"][str(lvl)]
+            lat_samples = [
+                float(s["p50_us"]["min"]), float(s["p50_us"]["median"]), float(s["p50_us"]["max"]),
+                float(s["p95_us"]["min"]), float(s["p95_us"]["median"]), float(s["p95_us"]["max"]),
+                float(s["p99_us"]["min"]), float(s["p99_us"]["median"]), float(s["p99_us"]["max"]),
+                float(s["max_lat_us"]["min"]), float(s["max_lat_us"]["median"]), float(s["max_lat_us"]["max"])
+            ]
+            x = np.sort(np.array(lat_samples))
+            y = np.arange(1, len(x) + 1) / float(len(x))
+            x_ecdf = np.concatenate(([max(1.0, x[0] * 0.9)], x))
+            y_ecdf = np.concatenate(([0.0], y))
+            ax.step(x_ecdf, y_ecdf, where='post', label=label, color=color, linestyle=style, linewidth=2.2)
 
     ax.set_xscale('log')
     ax.set_xlabel('Ingestion Latency (µs, log scale)')
