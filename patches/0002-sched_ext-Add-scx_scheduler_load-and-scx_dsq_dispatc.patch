@@ -1,5 +1,5 @@
 From fed0cb3b1a5660db97936d2f004b6ce5207d4a7b Mon Sep 17 00:00:00 2001
-From: Security Research Team <security-research@upstream.kernel.org>
+From: rootagi <rootagi@duck.com>
 Date: Sun, 15 Nov 2026 16:57:30 +0530
 Subject: [PATCH 2/2] sched_ext: Add scx_scheduler_load and scx_dsq_dispatch
  tracepoints
@@ -32,7 +32,7 @@ probes to detect adversarial starvation patterns (e.g. repetitive
 sub-100us slices or disproportionate DSQ skipping) with zero overhead on
 the fast path when inactive.
 
-Signed-off-by: Security Research Team <security-research@upstream.kernel.org>
+Signed-off-by: rootagi <rootagi@duck.com>
 ---
  include/trace/events/sched_ext.h | 40 ++++++++++++++++++++++++++++++++
  kernel/sched/ext.c               |  6 +++++
@@ -97,7 +97,7 @@ index b138657..b47f608 100644
  
  	atomic_long_inc(&scx_enable_seq);
  
-+	trace_scx_scheduler_load(current, scx_ops.name, link->prog->aux->id);
++	trace_scx_scheduler_load(current, scx_ops.name, link->id);
 +
  	return 0;
  
