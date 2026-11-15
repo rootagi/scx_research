@@ -98,6 +98,14 @@ For complete instructions, see [EVALUATION.md](EVALUATION.md) and [CLAIMS.md](CL
 
 ---
 
+---
+
+## Methodology, Verification & Dual-Use Disclosure
+
+* **Empirical Verification & AI-Assisted Tooling Disclosure:** Artificial Intelligence was utilized during this project to scaffold the evaluation harness, automate plotting scripts, and draft the initial manuscript sections. All eBPF programs (`scx_starve.bpf.c`, `scx_forensic_delay.bpf.c`, `scx_guard_lsm.bpf.c`), userspace loaders, RFC kernel patches (`patches/`), and the 300-trial empirical telemetry datasets (`results/raw_logs/falco/` and `results/raw_logs/tetragon/`) were compiled, executed, and human-verified against a live Linux 6.12+ kernel testbed (`CONFIG_SCHED_CLASS_EXT=y`, `CONFIG_BPF_LSM=y`).
+* **Defensive & Research Intent:** The adversarial scheduling primitives in this repository require root privileges (`CAP_SYS_ADMIN` / `CAP_BPF`) and are provided strictly for evaluating Linux `sched_ext` security observability and validating runtime mitigations. Defenders and cloud-native security teams can immediately deploy the included `scx_monitor` BPF LSM daemon (`defenses/`) or elevate critical user-space ring-buffer consumers to real-time scheduling classes (`SCHED_FIFO` / `SCHED_RR`) to prevent sub-watchdog starvation.
+
+
 ## Licensing
 
 This research repository is distributed under a dual-licensing structure (Option A):
